@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C2W2 UI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Helvetica", monospace;
+        }
+
+        body {
+            background-color: transparent;
+            overflow: hidden;
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100vh;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* --- MENÜ KISMI --- */
+        .top-section {
+            height: auto;
+            width: auto; 
+            display: flex;
+            flex-direction: column;
+            padding: 15px 0;
+            background-color: transparent;
+            z-index: 10;
+            position: absolute;
+            top: 25px;       
+            left: auto;
+            right: 15px;      
+            gap: 10px;
+        }
+
+        .top-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; 
+            width: auto; 
+            gap: 10px;
+        }
+
+        .menu-btn-container {
+            z-index: 6;
+            height: auto;
+            display: flex;
+            gap: 5px; 
+            width: auto;
+            padding: 0;
+        }
+
+        .fullscreen-row {
+            display: flex;
+            width: auto;
+            padding: 0;
+            margin-top: 0px;
+        }
+
+        .fullscreen-container {
+            z-index: 6;
+            width: auto;
+        }
+
+        .menu-btn, .fullscreen-btn {
+            padding: 5px 15px; 
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            font-size: 9px;
+            transition: all 0.2s;
+            color: #000;
+            box-shadow: none;
+            text-shadow: none;
+            line-height: 1.2;
+            flex: none;    
+            width: auto;    
+            white-space: nowrap;
+            outline: none;
+            letter-spacing: -0.5px;
+        }
+
+        .menu-btn {
+            height: auto;
+            min-height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fullscreen-btn {
+            font-weight: bolder;
+            background-color: rgba(240, 240, 240, 0.9);
+            width: auto; 
+            min-width: 100px;
+        }
+
+        .menu-btn:hover, .fullscreen-btn:hover {
+            background-color: GRAY;
+            color: white;
+        }
+
+        .menu-btn.active {
+            background-color: rgba(0, 0, 0, 1);
+            color: white;
+        }
+
+        /* --- VIEWER KISMI --- */
+        .viewer-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            z-index: 1;
+            background: white;
+        }
+
+        #htmlViewer, #linkViewer {
+            width: 100%;
+            height: 100vh;
+            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: white;
+            display: none;
+        }
+
+        /* --- ORTAK GÖRÜNTÜLEYİCİ STİLİ (RESİM & VİDEO) --- */
+        /* Hem imageViewer hem videoViewer aynı kuralları kullanır */
+        #imageViewer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Tam ortalama */
+            
+            /* Scaled to HEIGHT full */
+            height: 80vh; 
+            width: 80vh; 
+            
+            display: none;
+            object-fit: contain; /* Kesme yapmaz */
+        }
+
+       #videoViewer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Tam ortalama */
+            
+            /* Scaled to HEIGHT full */
+            height: 80vh; 
+            width: 80vh;   /* Genişlik orantılı kalsın */
+            
+            display: none;
+            object-fit: contain; /* Kesme yapmaz */
+        }
+
+        /* FULLSCREEN MODLARI */
+        .container.fullscreen-mode {
+            height: 100vh !important;
+            width: 100vw !important;
+        }
+        .fullscreen-mode .top-section {
+            display: none !important;
+        }
+        .fullscreen-mode #htmlViewer,
+        .fullscreen-mode #linkViewer {
+            height: 100vh !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-section" id="top-section">
+            <div class="top-controls">
+                
+                <div class="menu-btn-container">
+                    <button class="menu-btn" id="info-btn">SAMPLE_3.HTML</button>
+                    <button class="menu-btn" id="browser-btn">SAMPLE_2.HTML</button>
+                    <button class="menu-btn" id="video-btn">SAMPLE_1.MP4</button>
+                    <button class="menu-btn" id="image-btn">PAGE</button>
+                    
+                </div>
+
+                <div class="fullscreen-row" id="fullscreen-row" style="display: none;">
+                    <div class="fullscreen-container">
+                        <button class="fullscreen-btn" id="fullscreen-btn">Fullscreen</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="viewer-container" id="viewer-container">
+            <iframe id="htmlViewer" src="about:blank"></iframe>
+            <iframe id="linkViewer" src="about:blank"></iframe>
+            <img id="imageViewer" src="" alt="Work Image" />
+            <video id="videoViewer" src="" controls autoplay loop muted playsinline></video>
+        </div>
+    </div>
+
+    <script>
+        // İsterseniz 'video' olarak değiştirebilirsiniz
+        let activeMode = 'image';
+
+        // URL KONFIGURASYONU
+        const modeConfigs = {
+            info: { url: 'https://decentralize.design/decentralize', type: 'link', hasFullscreen: false },
+            browser: { url: 'https://raw.githubusercontent.com/decentralize-dfw/decentralize/refs/heads/main/3d-interface-v3.html', type: 'html', hasFullscreen: false },
+            image: { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/1.jpg', type: 'image', hasFullscreen: false },
+            // Örnek MP4 Video URL'si
+            video: { url: 'https://video.wixstatic.com/video/bbd25a_a98194f1174b434ea9f7f1ce355d6c81/1080p/mp4/file.mp4', type: 'video', hasFullscreen: false }
+        };
+
+        const dom = {
+            viewer: {
+                html: document.getElementById('htmlViewer'),
+                link: document.getElementById('linkViewer'),
+                image: document.getElementById('imageViewer'),
+                video: document.getElementById('videoViewer') // Yeni video referansı
+            }
+        };
+
+        function initApp() {
+            setupEventListeners();
+            const config = modeConfigs[activeMode];
+            loadContent(config.url, config.type);
+            updateMenuButtons();
+        }
+
+        function setupEventListeners() {
+            document.getElementById('info-btn').addEventListener('click', () => showMode('info'));
+            document.getElementById('browser-btn').addEventListener('click', () => showMode('browser'));
+            document.getElementById('image-btn').addEventListener('click', () => showMode('image'));
+            document.getElementById('video-btn').addEventListener('click', () => showMode('video')); // Yeni Listener
+            
+            document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
+
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && document.fullscreenElement) {
+                    document.exitFullscreen();
+                }
+            });
+
+            document.addEventListener('fullscreenchange', () => {
+                const container = document.querySelector('.container');
+                if (document.fullscreenElement) {
+                    container.classList.add('fullscreen-mode');
+                } else {
+                    container.classList.remove('fullscreen-mode');
+                }
+            });
+        }
+
+        function showMode(mode) {
+            if (activeMode === mode) return;
+            activeMode = mode;
+            updateMenuButtons();
+            const config = modeConfigs[mode];
+            loadContent(config.url, config.type);
+        }
+
+        function toggleFullscreen() {
+            const container = document.querySelector('.container');
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen()
+                    .then(() => { container.classList.add('fullscreen-mode'); })
+                    .catch(err => console.error('Fullscreen error:', err));
+            } else {
+                document.exitFullscreen()
+                    .then(() => { container.classList.remove('fullscreen-mode'); })
+                    .catch(err => console.error('Exit fullscreen error:', err));
+            }
+        }
+
+        function loadContent(url, type) {
+            const config = modeConfigs[activeMode];
+            if (!config) return;
+
+            const fullscreenRow = document.getElementById('fullscreen-row');
+            fullscreenRow.style.display = config.hasFullscreen ? 'flex' : 'none';
+
+            // Önce hepsini gizle
+            dom.viewer.html.style.display = 'none';
+            dom.viewer.link.style.display = 'none';
+            dom.viewer.image.style.display = 'none';
+            dom.viewer.video.style.display = 'none';
+            
+            // Kaynakları temizle (Videonun sesini kesmek için önemli)
+            dom.viewer.html.src = 'about:blank';
+            dom.viewer.link.src = 'about:blank';
+            dom.viewer.image.src = '';
+            dom.viewer.video.pause();
+            dom.viewer.video.src = '';
+
+            if (type === 'html') {
+                fetch(url)
+                    .then(r => r.ok ? r.text() : Promise.reject(r.status))
+                    .then(html => {
+                        dom.viewer.html.srcdoc = html;
+                        dom.viewer.html.style.display = 'block';
+                    })
+                    .catch(e => console.error(e));
+            } else if (type === 'link') {
+                dom.viewer.link.src = url;
+                dom.viewer.link.style.display = 'block';
+            } else if (type === 'image') {
+                dom.viewer.image.src = url;
+                dom.viewer.image.style.display = 'block';
+            } else if (type === 'video') {
+                // Video İşlemleri
+                dom.viewer.video.src = url;
+                dom.viewer.video.style.display = 'block';
+                // Otomatik oynatmayı tetikle (muted olduğu için genelde çalışır)
+                dom.viewer.video.play().catch(e => console.log("Autoplay hatası:", e));
+            }
+        }
+
+        function updateMenuButtons() {
+            document.querySelectorAll('.menu-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.id === `${activeMode}-btn`) btn.classList.add('active');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
