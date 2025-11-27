@@ -131,13 +131,14 @@
             background: white;
         }
 
-        #htmlViewer, #linkViewer {
-            width: 100%;
-            height: 100vh;
+         #htmlViewer, #linkViewer {
+            width: 85%;
+            height: 85vh;
             border: none;
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 53%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Tam ortalama */
             background: white;
             display: none;
         }
@@ -192,7 +193,7 @@
             <div class="top-controls">
                 
                 <div class="menu-btn-container">
-                    <button class="menu-btn" id="info-btn">SAMPLE_3.HYP</button>
+                    <button class="menu-btn" id="info-btn">SAMPLE_3.HTML</button>
                     <button class="menu-btn" id="browser-btn">SAMPLE_2.HTML</button>
                     <button class="menu-btn" id="video-btn">SAMPLE_1.MP4</button>
                     <button class="menu-btn" id="image-btn">PAGE</button>
@@ -225,8 +226,8 @@
              image: { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/1_1.jpg', type: 'image', hasFullscreen: false },
              video: { url: 'https://video.wixstatic.com/video/bbd25a_242ed8b9e57049a993162d7d34edb645/1080p/mp4/file.mp4', type: 'video', hasFullscreen: false }, // sample 1
 
-            info: { url: 'https://hyperfy.io/scaffold/', type: 'link', hasFullscreen: true }, //sample 3
-            browser: { url: 'https://decentralize.design/vea_retaildemo.html', type: 'link', hasFullscreen: true } //sample 2
+            info: { url: 'https://hyperfy.io/scaffold/', type: 'link', hasFullscreen: false }, //sample 3
+            browser: { url: 'https://decentralize.design/vea_retaildemo.html', type: 'link', hasFullscreen: false } //sample 2
            
             // Örnek MP4 Video URL'si
            
