@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Viewer</title>
+    <!-- PDF.js library --><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        /* Tutarlı box-sizing */
+        * {
+            font-family: "Helvetica", sans-serif;
+            box-sizing: border-box; 
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0; 
+            display: flex;
+            flex-direction: column; /* İçeriği dikeyde düzenle */
+            justify-content: center; /* Tuvali ve kontrolleri dikeyde ortala */
+            align-items: center; /* Tuvali ve kontrolleri yatayda ortala */
+            width: 100vw; 
+            height: 100vh; 
+            overflow: hidden; /* Sayfanın taşmasını engelle */
+            position: relative; /* Kontroller için referans */
+        }
+        
+        /* PDF'in çizildiği tuval */
+        #pdfCanvas {
+            display: block;
+            border: 1px solid lightgray; /* Çerçeveyi görmek için kenarlık */
+            
+            box-shadow: 0 4px 50px 15px rgba(0,0,0,0.4);
+            background-color: #ffffff; /* Tuvalin arkaplanı beyaz */
+            margin-bottom: 70px; /* Kontrol panelinin üstünde boşluk bırak */
+            max-width: 65vw; /* Maksimum genişlik */
+            max-height: 65vh; /* Maksimum yükseklik */
+        }
+        
+        /* Tuval tam ekrandayken */
+        #pdfCanvas:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            object-fit: contain; 
+            background-color: #000000; /* Tam ekran arka planı siyah */
+            border: none;
+            box-shadow: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            margin-bottom: 0; /* Tam ekranda boşluk olmasın */
+        }
+        
+        /* Kontrol butonlarının olduğu bölüm - Orijinal (v1) stile geri dön */
+        #controls {
+            height: 32px;
+            width: 400px;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            background-color: rgba(255, 255, 255, 0); /* Transparent */
+            z-index: 10;
+            position: absolute; /* Tuvalin üstünde yüzen eleman gibi */
+            bottom: 15px; /* Sayfanın altına yakın */
+            left: 50%; /* Ortala */
+            transform: translateX(-50%); /* Tam ortala */
+        }
+        
+        /* Butonları saran div - Orijinal (v1) stil */
+        #navButtons {
+            display: flex;
+            width: 400px;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        /* Tüm butonlar ve inputlar - Orijinal (v1) stil */
+        #navButtons button, #fullscreenBtn, #pageInput, #pageInfo {
+            padding: 5px 4px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            font-size: 9px;
+            transition: all 0.2s;
+            color: #000;
+            box-shadow: none;
+            text-shadow: none;
+            height: 32px;
+            line-height: 20px;
+            outline: none;
+            flex: 1;
+        }
+        
+        /* Butonların hover durumu - Orijinal (v1) stil */
+        #navButtons button:hover, #fullscreenBtn:hover, #pageInput:hover {
+            background-color: rgba(240, 240, 240, 0.9);
+        }
+        
+        /* Devre dışı butonlar - Orijinal (v1) stil */
+        #navButtons button:disabled {
+            background-color: rgba(60, 60, 60, 0.9);
+            color: white;
+            cursor: not-allowed;
+        }
+        
+        /* Sayfa giriş alanı - Orijinal (v1) stil */
+        #pageInput {
+            text-align: center;
+            width: 50px; /* Fixed width for input */
+            flex: 0 1 50px; 
+        }
+        
+        /* Sayfa bilgisi alanı - Orijinal (v1) stil */
+        #pageInfo {
+            flex: 1;
+            text-align: center;
+            cursor: default;
+        }
+        
+        /* Yükleniyor ve Hata stilleri */
+        #loading, #error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            color: #666;
+            background: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            z-index: 20;
+        }
+        #error {
+            color: #d00;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- PDF'in çizildiği tuval --><canvas id="pdfCanvas"></canvas>
+
+    <div id="loading">Loading PDF...</div>
+    <div id="error" style="display: none;">Error loading PDF. Check if the file exists and is accessible.</div>
+    
+    <!-- Kontroller --><div id="controls">
+        <div id="navButtons">
+            <button id="prevBtn" onclick="prevPage()">← Prev</button>
+            <input type="number" id="pageInput" min="1" placeholder="Page" onkeypress="if(event.key==='Enter') goToPage()">
+            <span id="pageInfo">Page 1 / 1</span>
+            <button id="nextBtn" onclick="nextPage()">Next →</button>
+            <button id="fullscreenBtn" onclick="toggleFullScreen()">Full Screen</button>
+        </div>
+    </div>
+
+    <script>
+        // PDF.js worker'ını ayarla (performans için önemli)
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // Configuration
+        const pdfUrl = 'https://bbd25a32-eb9f-4892-a8d1-9d1dc4302909.usrfiles.com/ugd/bbd25a_62858676ce7f4840bf5a0dbdb12745e5.pdf';
+        
+        let pdfDoc = null;
+        let pageNum = 1;
+        let pageCount = 0;
+        let renderTask = null; // Aktif render görevini takip etmek için
+
+        const canvas = document.getElementById('pdfCanvas');
+        const ctx = canvas.getContext('2d');
+        const loading = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
+        const pageInput = document.getElementById('pageInput');
+        const pageInfo = document.getElementById('pageInfo');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const controlsDiv = document.getElementById('controls');
+
+        // PDF Yükleme
+        pdfjsLib.getDocument(pdfUrl).promise.then(function(pdf) {
+            pdfDoc = pdf;
+            pageCount = pdf.numPages;
+            loading.style.display = 'none';
+            errorDiv.style.display = 'none';
+            pageInput.max = pageCount; // Input için max değeri ayarla
+            updatePageInfo();
+            renderPage(pageNum);
+        }).catch(function(error) {
+            console.error('PDF yüklenirken hata:', error);
+            loading.style.display = 'none';
+            errorDiv.style.display = 'block';
+        });
+
+        /**
+         * Belirtilen sayfayı dinamik ölçekle tuvale çizer.
+         * @param {number} num - Çizilecek sayfa numarası
+         */
+        function renderPage(num) {
+            // Önceki render görevini iptal et (hızlı sayfa geçişleri için)
+            if (renderTask) {
+                renderTask.cancel();
+                renderTask = null;
+            }
+
+            pdfDoc.getPage(num).then(function(page) {
+                // Kontrol çubuğunun yüksekliğini hesapla
+                const controlsHeight = controlsDiv.offsetHeight;
+                // Mevcut viewport genişlik/yüksekliğini al
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+
+                // PDF için ayrılacak maksimum alan (kontrol çubuğu dikkate alınarak)
+                // Tuvalin margin-bottom'ı da dahil edilmeli
+                const availableWidth = viewportWidth * 0.9; // max-width: 90vw
+                const availableHeight = viewportHeight * 0.9 - 70; // max-height: 90vh - margin-bottom
+
+                // Sayfanın ölçeklenmemiş görünümünü al
+                const unscaledViewport = page.getViewport({ scale: 1 });
+                
+                // Kullanılabilir alana sığacak şekilde ölçeği hesapla
+                const scaleX = availableWidth / unscaledViewport.width;
+                const scaleY = availableHeight / unscaledViewport.height;
+                const scale = Math.min(scaleX, scaleY); // Oranı koruyarak sığdır
+
+                // Hesaplanan ölçekle yeni görünümü al
+                const viewport = page.getViewport({ scale: scale });
+
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                
+                renderTask = page.render(renderContext);
+                renderTask.promise.then(function() {
+                    renderTask = null; // Görev tamamlandı
+                    updatePageInfo();
+                    updateButtons();
+                }).catch(function(err) {
+                    renderTask = null;
+                    // Render iptal edildiyse hata gösterme
+                    if (!(err.name === 'RenderingCancelledException')) {
+                        console.error('Sayfa render hatası:', err);
+                    }
+                });
+            });
+        }
+
+        /**
+         * Tam ekranda (daha yüksek çözünürlüklü) render işlemi
+         */
+        function renderPageInFullScreen() {
+            pdfDoc.getPage(pageNum).then(function(page) {
+                const screenWidth = window.screen.width;
+                const screenHeight = window.screen.height;
+                
+                const unscaledViewport = page.getViewport({ scale: 1 });
+                
+                const scaleX = screenWidth / unscaledViewport.width;
+                const scaleY = screenHeight / unscaledViewport.height;
+                const scale = Math.min(scaleX, scaleY); // Ekrana sığdır
+
+                const viewport = page.getViewport({ scale: scale });
+
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                
+                page.render(renderContext); // Buton güncellemesi vs. gerekmez
+            });
+        }
+
+        function updatePageInfo() {
+            pageInfo.textContent = `Page ${pageNum} / ${pageCount}`;
+            pageInput.value = pageNum;
+        }
+
+        function updateButtons() {
+            prevBtn.disabled = (pageNum <= 1);
+            nextBtn.disabled = (pageNum >= pageCount);
+            fullscreenBtn.textContent = document.fullscreenElement ? 'Exit Full Screen' : 'Full Screen';
+        }
+
+        function nextPage() {
+            if (pageNum < pageCount) {
+                pageNum++;
+                renderPage(pageNum);
+            }
+        }
+
+        function prevPage() {
+            if (pageNum > 1) {
+                pageNum--;
+                renderPage(pageNum);
+            }
+        }
+
+        function goToPage() {
+            const inputPage = parseInt(pageInput.value);
+            if (inputPage >= 1 && inputPage <= pageCount && inputPage !== pageNum) {
+                pageNum = inputPage;
+                renderPage(pageNum);
+            } else {
+                // Geçersiz girişse, mevcut sayfaya geri dön
+                pageInput.value = pageNum;
+            }
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                canvas.requestFullscreen().catch(err => {
+                    console.error('Tam ekran hatası:', err.message);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Tam ekran değişikliğini dinle
+        document.addEventListener('fullscreenchange', function() {
+            if (document.fullscreenElement) {
+                controlsDiv.style.display = 'none'; // Kontrolleri gizle
+                document.body.style.backgroundColor = '#000000'; // Arka planı siyah yap
+                
+                // Tuval stillerini de ayarla (tam ekran için kaldır)
+                canvas.style.border = 'none';
+                canvas.style.boxShadow = 'none';
+                canvas.style.marginBottom = '0'; // Tam ekranda boşluk olmasın
+                
+                renderPageInFullScreen(); // Tam ekran için yeniden render et
+            } else {
+                controlsDiv.style.display = 'flex'; // Kontrolleri göster
+                document.body.style.backgroundColor = '#f0f0f0'; // Arka planı geri yükle
+                
+                // Tuval stillerini geri yükle
+                canvas.style.border = '1px solid #ddd';
+                canvas.style.boxShadow = '0 12px 8px rgba(0, 0, 0, 0.2)';
+                canvas.style.marginBottom = '70px'; // Boşluğu geri yükle
+
+                renderPage(pageNum); // Normal görünüm için yeniden render et
+            }
+            updateButtons(); // Buton metnini güncelle
+        });
+
+        // Mouse tekerleği ile sayfa değişimi (throttle ile)
+        let lastScroll = 0;
+        const throttleDelay = 200; 
+        document.body.addEventListener('wheel', function(e) {
+            e.preventDefault(); 
+            const now = Date.now();
+            if (now - lastScroll < throttleDelay) return; 
+            lastScroll = now;
+            if (e.deltaY > 0) {
+                nextPage(); 
+            } else if (e.deltaY < 0) {
+                prevPage(); 
+            }
+        });
+        
+        // Klavye navigasyonu
+        document.addEventListener('keydown', function(e) {
+            // Input'a odaklanılmışsa klavye kısayollarını devre dışı bırak
+            if (document.activeElement === pageInput) return;
+
+            if (e.key === 'ArrowLeft') prevPage();
+            if (e.key === 'ArrowRight') nextPage();
+        });
+
+        // Pencere yeniden boyutlandırıldığında PDF'i yeniden ölçekle (debounce ile)
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(function() {
+                if (pdfDoc && !document.fullscreenElement) { // Tam ekranda değilse
+                    renderPage(pageNum);
+                }
+            }, 150); // Yeniden boyutlandırma durduktan 150ms sonra
+        });
+    </script>
+</body>
+</html>
