@@ -79,7 +79,7 @@
         }
 
         .fullscreen-btn { font-weight: bolder; background-color: rgba(240, 240, 240, 0.9); width: auto; min-width: 80px; }
-        .menu-btn:hover, .fullscreen-btn:hover { background-color: #002fa7; color: white; }
+        .menu-btn:hover, .fullscreen-btn:hover { background-color: gray; color: white; }
         .menu-btn.active { background-color: rgba(0, 0, 0, 1); color: white; }
 
         /* --- VIEWER KISMI --- */
@@ -126,6 +126,8 @@
             <div class="top-controls">
                 
                 <div class="menu-btn-container">
+                    <button class="menu-btn" id="btn-00">00</button>
+                    
                     <button class="menu-btn" id="btn-3">3</button>
 
                     <button class="menu-btn" id="btn-2-3">2.3</button>
@@ -167,9 +169,13 @@
         // Burada hasFullscreen: false yaptığınızda buton artık KESİN GİDECEK.
         const modeConfigs = {
             
+            // YENİ EKLENEN KONFİGÜRASYON
+            '00': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-00.html', type: 'html', hasFullscreen: false },
+
             '0': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-0.html', type: 'html', hasFullscreen: false },
 
-            '1': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/1.jpg', type: 'image', hasFullscreen: false },
+
+            '1': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/1_0-v2.jpg', type: 'image', hasFullscreen: false },
             '1-1': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-1-1.html', type: 'html', hasFullscreen: false },
             '1-2': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-1-2.html', type: 'html', hasFullscreen: false },
             '1-3': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-1-3.html', type: 'html', hasFullscreen: false },
@@ -180,7 +186,7 @@
             '2-2': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-2-2.html', type: 'html', hasFullscreen: false },
             '2-3': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-2-3.html', type: 'html', hasFullscreen: false },
 
-            '3': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-3.html', type: 'html', hasFullscreen: false }
+            '3': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-3.html', type: 'html', hasFullscreen: false },
         };
 
         const dom = {
