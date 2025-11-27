@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C2W2 UI - Fixed Menu</title>
+    <title>Virtually Ever After Presentation</title>
     <style>
         /* --- TEMEL STİLLER --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Helvetica", monospace; }
@@ -167,24 +167,20 @@
         // Burada hasFullscreen: false yaptığınızda buton artık KESİN GİDECEK.
         const modeConfigs = {
             
-            '0': { 
-                url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/1.jpg', 
-                type: 'image', 
-                hasFullscreen: false  // FALSE TEST
-            },
+            '0': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-0.html', type: 'html', hasFullscreen: false },
 
-            '1': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/samplepage.html', type: 'html', hasFullscreen: false },
-            '1-1': { url: '1-1.html', type: 'html', hasFullscreen: false },
-            '1-2': { url: '1-2.html', type: 'html', hasFullscreen: false },
-            '1-3': { url: '1-3.html', type: 'html', hasFullscreen: false },
-            '1-4': { url: '1-4.html', type: 'html', hasFullscreen: false },
+            '1': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/1.jpg', type: 'image', hasFullscreen: false },
+            '1-1': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-1-1.html', type: 'html', hasFullscreen: false },
+            '1-2': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-1-2.html', type: 'html', hasFullscreen: false },
+            '1-3': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-1-3.html', type: 'html', hasFullscreen: false },
+            '1-4': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-1-4.html', type: 'html', hasFullscreen: false },
 
-            '2': { url: '2.html', type: 'html', hasFullscreen: false },
-            '2-1': { url: '2-1.html', type: 'html', hasFullscreen: false },
-            '2-2': { url: '2-2.html', type: 'html', hasFullscreen: false },
-            '2-3': { url: '2-3.html', type: 'html', hasFullscreen: false },
+            '2': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-2.html', type: 'html', hasFullscreen: false },
+            '2-1': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-2-1.html', type: 'html', hasFullscreen: false },
+            '2-2': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-2-2.html', type: 'html', hasFullscreen: false },
+            '2-3': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-2-3.html', type: 'html', hasFullscreen: false },
 
-            '3': { url: '3.html', type: 'html', hasFullscreen: false }
+            '3': { url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/93-3.html', type: 'html', hasFullscreen: false }
         };
 
         const dom = {
@@ -286,7 +282,7 @@
                     .then(response => {
                         if (response.ok) return response.text();
                         return `<div style="display:flex;height:100vh;align-items:center;justify-content:center;color:red;font-family:sans-serif;">
-                                    <b>HATA:</b>&nbsp; "${url}" dosyası bulunamadı.
+                                    <b>ERROR!</b>&nbsp; "${url}" IS SLEEPING WITH FISHES.
                                 </div>`;
                     })
                     .then(html => {
