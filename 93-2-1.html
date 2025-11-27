@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtually Ever After Presentation 1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Helvetica", monospace;
+        }
+
+        body {
+            background-color: transparent;
+            overflow: hidden;
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100vh;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* --- MENÜ KISMI --- */
+        .top-section {
+            height: auto;
+            width: auto; 
+            display: flex;
+            flex-direction: column;
+            padding: 15px 0;
+            background-color: transparent;
+            z-index: 10;
+            position: absolute;
+            top: 25px;       
+            left: auto;
+            right: 15px;      
+            gap: 10px;
+        }
+
+        .top-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; 
+            width: auto; 
+            gap: 10px;
+        }
+
+        .menu-btn-container {
+            z-index: 6;
+            height: auto;
+            display: flex;
+            gap: 5px; 
+            width: auto;
+            padding: 0;
+        }
+
+        .fullscreen-row {
+            display: flex;
+            width: auto;
+            padding: 0;
+            margin-top: 0px;
+        }
+
+        .fullscreen-container {
+            z-index: 6;
+            width: auto;
+        }
+
+        .menu-btn, .fullscreen-btn {
+            padding: 5px 15px; 
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            font-size: 9px;
+            transition: all 0.2s;
+            color: #000;
+            box-shadow: none;
+            text-shadow: none;
+            line-height: 1.2;
+            flex: none;    
+            width: auto;    
+            white-space: nowrap;
+            outline: none;
+            letter-spacing: -0.5px;
+        }
+
+        .menu-btn {
+            height: auto;
+            min-height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fullscreen-btn {
+            font-weight: bolder;
+            background-color: rgba(240, 240, 240, 0.9);
+            width: auto; 
+            min-width: 100px;
+        }
+
+        .menu-btn:hover, .fullscreen-btn:hover {
+            background-color: GRAY;
+            color: white;
+        }
+
+        .menu-btn.active {
+            background-color: rgba(0, 0, 0, 1);
+            color: white;
+        }
+
+        /* --- VIEWER KISMI --- */
+        .viewer-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            z-index: 1;
+            background: white;
+        }
+
+        #htmlViewer, #linkViewer {
+            width: 100%;
+            height: 100vh;
+            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: white;
+            display: none;
+        }
+
+        /* --- ORTAK GÖRÜNTÜLEYİCİ STİLİ (RESİM & VİDEO) --- */
+        /* Hem imageViewer hem videoViewer aynı kuralları kullanır */
+        #imageViewer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Tam ortalama */
+            
+            /* Scaled to HEIGHT full */
+            height: 80vh; 
+            width: 80vh; 
+            
+            display: none;
+            object-fit: contain; /* Kesme yapmaz */
+        }
+
+       #videoViewer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Tam ortalama */
+            
+            /* Scaled to HEIGHT full */
+            height: 80vh; 
+            width: 80vh;   /* Genişlik orantılı kalsın */
+            
+            display: none;
+            object-fit: contain; /* Kesme yapmaz */
+        }
+
+        /* FULLSCREEN MODLARI */
+        .container.fullscreen-mode {
+            height: 100vh !important;
+            width: 100vw !important;
+        }
+        .fullscreen-mode .top-section {
+            display: none !important;
+        }
+        .fullscreen-mode #htmlViewer,
+        .fullscreen-mode #linkViewer {
+            height: 100vh !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-section" id="top-section">
+            <div class="top-controls">
+                
+                <div class="menu-btn-container">
+                    
+                    <button class="menu-btn" id="video-btn">SAMPLE_1.MP4</button>
+                    <button class="menu-btn" id="image-btn">PAGE</button>
+                    
+                </div>
+
+                <div class="fullscreen-row" id="fullscreen-row" style="display: none;">
+                    <div class="fullscreen-container">
+                        <button class="fullscreen-btn" id="fullscreen-btn">Fullscreen</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="viewer-container" id="viewer-container">
+            <iframe id="htmlViewer" src="about:blank"></iframe>
+            <iframe id="linkViewer" src="about:blank"></iframe>
+            <img id="imageViewer" src="" alt="Work Image" />
+            <video id="videoViewer" src="" controls autoplay loop muted playsinline></video>
+        </div>
+    </div>
+
+    <script>
+        // Başlangıç Modu
+        let activeMode = 'image';
+
+        // URL ve TİP YAPILANDIRMASI
+        // Not: İkinci sıradaki 'video' modu için de type: 'image' verdiniz çünkü JPG dosyası koydunuz.
+        // Eğer gerçek bir video (mp4) koyacaksanız type: 'video' yapmalısınız.
+        const modeConfigs = {
+            image: { 
+                url: 'https://raw.githubusercontent.com/decentralize-dfw/virtuallyeverafter/refs/heads/main/2_1.jpg', 
+                type: 'image'
+            },
+            video: { 
+                url: 'https://video.wixstatic.com/video/bbd25a_cbec7d394bfd417193d86ba249c93d63/720p/mp4/file.mp4', 
+                type: 'video' 
+            }
+        };
+
+        const dom = {
+            viewer: {
+                image: document.getElementById('imageViewer'),
+                video: document.getElementById('videoViewer')
+            }
+        };
+
+        function initApp() {
+            setupEventListeners();
+            
+            // Başlangıç içeriğini yükle
+            const config = modeConfigs[activeMode];
+            loadContent(config.url, config.type);
+            updateMenuButtons();
+        }
+
+        function setupEventListeners() {
+            // Sadece var olan butonlar için listener ekliyoruz (Eski info/browser silindi)
+            document.getElementById('image-btn').addEventListener('click', () => showMode('image'));
+            document.getElementById('video-btn').addEventListener('click', () => showMode('video'));
+            
+            document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
+
+            // ESC tuşu ile fullscreenden çıkış
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && document.fullscreenElement) {
+                    document.exitFullscreen();
+                }
+            });
+
+            // Fullscreen değişimini dinle
+            document.addEventListener('fullscreenchange', () => {
+                const container = document.querySelector('.container');
+                if (document.fullscreenElement) {
+                    container.classList.add('fullscreen-mode');
+                } else {
+                    container.classList.remove('fullscreen-mode');
+                }
+            });
+        }
+
+        function showMode(mode) {
+            if (activeMode === mode) return;
+            activeMode = mode;
+            updateMenuButtons();
+            
+            const config = modeConfigs[mode];
+            loadContent(config.url, config.type);
+        }
+
+        function toggleFullscreen() {
+            const container = document.querySelector('.container');
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen()
+                    .catch(err => console.error('Fullscreen error:', err));
+            } else {
+                document.exitFullscreen()
+                    .catch(err => console.error('Exit fullscreen error:', err));
+            }
+        }
+
+        function loadContent(url, type) {
+            // Önce her şeyi gizle ve durdur
+            dom.viewer.image.style.display = 'none';
+            dom.viewer.video.style.display = 'none';
+            
+            dom.viewer.video.pause();
+            dom.viewer.video.src = ''; 
+            dom.viewer.image.src = '';
+
+            if (type === 'image') {
+                dom.viewer.image.src = url;
+                dom.viewer.image.style.display = 'block';
+            } else if (type === 'video') {
+                dom.viewer.video.src = url;
+                dom.viewer.video.style.display = 'block';
+                // Videoyu oynat
+                dom.viewer.video.play().catch(e => console.log("Otomatik oynatma engellendi:", e));
+            }
+        }
+
+        function updateMenuButtons() {
+            document.querySelectorAll('.menu-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // Hangi mod aktifse o butonu boya
+            const activeBtn = document.getElementById(`${activeMode}-btn`);
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
+
+
+
+
+
